@@ -7,6 +7,7 @@ class_name Titan
 # Signals
 signal action_selected(move: String)  # Emitted when the Titan selects an action
 signal health_changed(new_health: float, max_health: float)  # Emitted when health changes
+signal defeated  # Emitted when the titan is defeated
 
 # Enums
 enum State { IDLE, BUSY }
@@ -21,9 +22,9 @@ enum State { IDLE, BUSY }
 @export var agility: float = 1.0  # AGI - Affects move frequency
 @export var weight: float = 100.0  # Affects knockback resistance
 @export var move_weights: Dictionary = {
-	"dodge": 0.3,
-	"tackle": 0.3,
-	"block": 0.3
+	"dodge": 0.2,
+	"tackle": 0.4,
+	"block": 0.4
 }
 
 # Visuals - override these in child scenes
@@ -235,7 +236,8 @@ func heal(amount: float) -> void:
 	health_changed.emit(current_health, max_health)
 
 func _die() -> void:
-	# Handle death (e.g., play animation, emit signal, queue_free())
+	# Emit defeated signal before cleaning up
+	defeated.emit()
 	queue_free()
 
 func _on_tackle_hit(body: Node) -> void:
