@@ -36,10 +36,6 @@ offset_right = 100.0
 offset_bottom = -40.0
 text = "hatch"
 
-[node name="Titan" type="Sprite2D" parent="."]
-position = Vector2(571, 315)
-texture = ExtResource("1_s8fat")
-
 [node name="Egg" type="Sprite2D" parent="."]
 position = Vector2(569, 311)
 scale = Vector2(1.5, 1.5)

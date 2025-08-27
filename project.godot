@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="TitanTamer"
-run/main_scene="uid://b8eg4g72fm20n"
+run/main_scene="uid://b6reywvvqrd5f"
 config/features=PackedStringArray("4.4", "GL Compatibility")
 config/icon="res://icon.svg"
 

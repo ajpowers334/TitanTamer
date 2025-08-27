@@ -1,4 +1,8 @@
 extends CharacterBody2D
+class_name Titan
+
+# Base class for all titans
+# Extend this class to create different titan types
 
 # Signals
 signal action_selected(move: String)  # Emitted when the Titan selects an action
@@ -7,13 +11,24 @@ signal health_changed(new_health: float, max_health: float)  # Emitted when heal
 # Enums
 enum State { IDLE, BUSY }
 
-# Exported stats
+# Base stats - these should be overridden in child classes
+@export_category("Base Stats")
 @export var max_health: float = 100.0
 @export var power: float = 10.0
 @export var range: float = 100.0
 @export var block_power: float = 5.0
 @export var agility: float = 1.0
-@export var weight: float = 100.0  # Fixed weight for knockback calculations
+@export var weight: float = 100.0  # Affects knockback resistance
+@export var move_weights: Dictionary = {
+	"dodge": 0.3,
+	"tackle": 0.3,
+	"block": 0.3
+}
+
+# Visuals - override these in child scenes
+@export_category("Visuals")
+@export var sprite_texture: Texture2D
+@export var block_texture: Texture2D
 
 # State variables
 var current_state: State = State.IDLE
@@ -29,7 +44,7 @@ var is_on_ground: bool = false
 # AI Timer
 @onready var ai_timer: Timer = Timer.new()
 
-func _ready():
+func _ready() -> void:
 	current_health = max_health
 	
 	# Setup AI timer
@@ -42,6 +57,9 @@ func _ready():
 	if tackle_hitbox:
 		tackle_hitbox.body_entered.connect(_on_tackle_hit)
 		tackle_hitbox.monitoring = false  # Start disabled
+	
+	# Setup visuals
+	_setup_visuals()
 	
 	# Start AI decision making
 	_start_ai_cycle()
@@ -73,12 +91,6 @@ func _on_ai_timeout() -> void:
 	_start_ai_cycle()
 
 func _make_decision() -> void:
-	var move_weights = {
-		"dodge": 0.4,  # 40% chance
-		"tackle": 0.4,  # 40% chance
-		"block": 0.2   # 20% chance
-	}
-	
 	var total = 0.0
 	var roll = randf()
 	
@@ -100,7 +112,7 @@ func _execute_move(move: String) -> void:
 			_block()
 	
 	action_selected.emit(move)
-	current_state = State.IDLE
+	current_state = State.IDLE  # Reset state after move is done
 
 func _dodge() -> void:
 	print("[", name, "] Dodging!")
@@ -161,16 +173,39 @@ func _tackle() -> void:
 					tackle_hitbox.monitoring = false
 		)
 
+@onready var block_sprite = $Block
+
 func _block() -> void:
 	print("[", name, "] Blocking for 1 second")
 	is_blocking = true
+	velocity = Vector2.ZERO  # Stop all movement when blocking
+	
+	# Show the block sprite
+	if block_sprite:
+		block_sprite.visible = true
+	
 	# Blocking reduces incoming damage for a short duration
 	var block_timer = get_tree().create_timer(1.0)  # Block lasts 1 second
 	block_timer.timeout.connect(
 		func():
 			is_blocking = false
+			# Hide the block sprite when blocking ends
+			if block_sprite:
+				block_sprite.visible = false
 			print("[", name, "] Block ended")
 	)
+
+# Virtual method for setting up visuals - override in child classes
+func _setup_visuals() -> void:
+	# Set up sprite if available
+	if has_node("Sprite2D") and sprite_texture:
+		$Sprite2D.texture = sprite_texture
+	
+	# Set up block sprite if available
+	block_sprite = $Block if has_node("Block") else null
+	if block_sprite and block_texture:
+		block_sprite.texture = block_texture
+		block_sprite.visible = false
 
 func take_damage(amount: float, source_position: Vector2) -> void:
 	var original_amount = amount
