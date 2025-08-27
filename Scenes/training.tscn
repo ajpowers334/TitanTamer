@@ -11,32 +11,32 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_1ydqc")
 
-[node name="Training1" type="Button" parent="."]
+[node name="BrawlerTraining" type="Button" parent="."]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.15
 anchor_top = 0.9
 anchor_right = 0.3
 anchor_bottom = 0.95
-text = "Training 1"
+text = "+2 PWR +1 BLK"
 
-[node name="Training2" type="Button" parent="."]
+[node name="DodgeTraining" type="Button" parent="."]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.4
 anchor_top = 0.9
 anchor_right = 0.6
 anchor_bottom = 0.95
-text = "Training 2"
+text = "+2 AGI +1 RNG"
 
-[node name="Training3" type="Button" parent="."]
+[node name="StrengthTraining" type="Button" parent="."]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.7
 anchor_top = 0.9
 anchor_right = 0.85
 anchor_bottom = 0.95
-text = "Training 3"
+text = "+2 HP +1 BLK"
 
 [node name="FightButton" type="Button" parent="."]
 layout_mode = 1

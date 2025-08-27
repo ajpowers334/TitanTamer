@@ -14,10 +14,11 @@ enum State { IDLE, BUSY }
 # Base stats - these should be overridden in child classes
 @export_category("Base Stats")
 @export var max_health: float = 100.0
-@export var power: float = 10.0
-@export var range: float = 100.0
-@export var block_power: float = 5.0
-@export var agility: float = 1.0
+@export var current_health: float = 100.0
+@export var power: float = 10.0  # PWR - Modifies physical move damage
+@export var range_stat: float = 10.0  # RNG - Modifies special/ranged move damage
+@export var bulk: float = 5.0  # BLK - Reduces damage taken from all moves
+@export var agility: float = 1.0  # AGI - Affects move frequency
 @export var weight: float = 100.0  # Affects knockback resistance
 @export var move_weights: Dictionary = {
 	"dodge": 0.3,
@@ -32,7 +33,6 @@ enum State { IDLE, BUSY }
 
 # State variables
 var current_state: State = State.IDLE
-var current_health: float
 var is_blocking: bool = false
 var tackle_hitbox: Area2D = null
 var facing_direction: int = 1  # 1 for right, -1 for left
@@ -211,8 +211,8 @@ func take_damage(amount: float, source_position: Vector2) -> void:
 	var original_amount = amount
 	
 	if is_blocking:
-		print("[", name, "] Blocked an attack! Reduced damage by ", block_power)
-		amount = max(0, amount - block_power)
+		print("[", name, "] Blocked an attack! Reduced damage by ", bulk)
+		amount = max(0, amount - bulk)
 	
 	current_health = max(0, current_health - amount)
 	health_changed.emit(current_health, max_health)

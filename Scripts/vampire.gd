@@ -1,15 +1,20 @@
-extends "res://Scripts/titan.gd"
+extends Titan
+class_name VampireTitan
+
+# Make sure Titan class is loaded
+const Titan = preload("res://Scripts/titan.gd")
 
 # Vampire-specific stats
 @export var life_steal_amount: float = 0.3  # 30% of damage dealt is returned as health
 
 func _init() -> void:
 	# Override base titan stats
-	max_health = 80.0      # Lower health but has life steal
-	power = 12.0           # Moderate attack power
-	agility = 1.5          # Faster than average
+	max_health = 80.0      # Lower health
+	range_stat = 12.0      # Moderate range strength (RNG)
+	power = 12.0           # Moderate power strength (PWR)
+	agility = 1.5          # Faster than average (AGI)
 	weight = 80.0          # Lighter, more susceptible to knockback
-	block_power = 3.0      # Weaker block but makes up with life steal
+	bulk = 3.0             # Weaker bulk (BLK)
 	
 	# Adjust move weights - more aggressive playstyle
 	move_weights = {
