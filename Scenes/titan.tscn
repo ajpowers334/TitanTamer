@@ -1,0 +1,24 @@
+[gd_scene load_steps=5 format=3 uid="uid://dkek3s43uf11n"]
+
+[ext_resource type="Texture2D" uid="uid://bgc233uk06hkf" path="res://icon.svg" id="1_cv2mp"]
+[ext_resource type="Script" uid="uid://doohdkwy3xo1k" path="res://Scripts/titan.gd" id="1_mn172"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_mn172"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_7klgk"]
+
+[node name="Titan" type="CharacterBody2D"]
+script = ExtResource("1_mn172")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+scale = Vector2(6, 6)
+shape = SubResource("RectangleShape2D_mn172")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("1_cv2mp")
+
+[node name="Tackle" type="Area2D" parent="."]
+scale = Vector2(7, 7)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Tackle"]
+shape = SubResource("RectangleShape2D_7klgk")

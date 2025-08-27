@@ -1,0 +1,47 @@
+[gd_scene load_steps=4 format=3 uid="uid://b8eg4g72fm20n"]
+
+[ext_resource type="Texture2D" uid="uid://bgc233uk06hkf" path="res://icon.svg" id="1_lc1oi"]
+[ext_resource type="PackedScene" uid="uid://dkek3s43uf11n" path="res://Scenes/titan.tscn" id="2_8od7v"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_8od7v"]
+
+[node name="TEST" type="Node2D"]
+
+[node name="Platform" type="StaticBody2D" parent="."]
+position = Vector2(597, 578)
+scale = Vector2(10, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform"]
+scale = Vector2(6, 6)
+shape = SubResource("RectangleShape2D_8od7v")
+
+[node name="Sprite2D" type="Sprite2D" parent="Platform"]
+texture = ExtResource("1_lc1oi")
+
+[node name="Platform2" type="StaticBody2D" parent="."]
+position = Vector2(-1, 358)
+scale = Vector2(1, 10)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform2"]
+scale = Vector2(6, 6)
+shape = SubResource("RectangleShape2D_8od7v")
+
+[node name="Sprite2D" type="Sprite2D" parent="Platform2"]
+texture = ExtResource("1_lc1oi")
+
+[node name="Platform3" type="StaticBody2D" parent="."]
+position = Vector2(1155, 393)
+scale = Vector2(1, 10)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform3"]
+scale = Vector2(6, 6)
+shape = SubResource("RectangleShape2D_8od7v")
+
+[node name="Sprite2D" type="Sprite2D" parent="Platform3"]
+texture = ExtResource("1_lc1oi")
+
+[node name="Titan" parent="." groups=["team_red"] instance=ExtResource("2_8od7v")]
+position = Vector2(186, 334)
+
+[node name="Titan2" parent="." groups=["team_blue"] instance=ExtResource("2_8od7v")]
+position = Vector2(793, 329)
