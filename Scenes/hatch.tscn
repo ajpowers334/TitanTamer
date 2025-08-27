@@ -1,0 +1,46 @@
+[gd_scene load_steps=3 format=3 uid="uid://btst1ucyfxcq6"]
+
+[ext_resource type="Script" uid="uid://0sol6gdt7o7j" path="res://Scripts/hatch.gd" id="1_djibj"]
+[ext_resource type="Texture2D" uid="uid://bgc233uk06hkf" path="res://icon.svg" id="1_s8fat"]
+
+[node name="Hatch" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_djibj")
+
+[node name="TrainButton" type="Button" parent="."]
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -100.0
+offset_top = -140.0
+offset_right = 100.0
+offset_bottom = -100.0
+text = "TRAIN!"
+
+[node name="Button" type="Button" parent="."]
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -100.0
+offset_top = -80.0
+offset_right = 100.0
+offset_bottom = -40.0
+text = "hatch"
+
+[node name="Titan" type="Sprite2D" parent="."]
+position = Vector2(571, 315)
+texture = ExtResource("1_s8fat")
+
+[node name="Egg" type="Sprite2D" parent="."]
+position = Vector2(569, 311)
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("1_s8fat")

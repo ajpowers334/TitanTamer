@@ -10,7 +10,7 @@ enum State { IDLE, BUSY }
 # Exported stats
 @export var max_health: float = 100.0
 @export var power: float = 10.0
-@export var attack_range: float = 100.0
+@export var range: float = 100.0
 @export var block_power: float = 5.0
 @export var agility: float = 1.0
 @export var weight: float = 100.0  # Fixed weight for knockback calculations

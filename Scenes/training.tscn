@@ -1,0 +1,53 @@
+[gd_scene load_steps=3 format=3 uid="uid://b3v5k1m77rky6"]
+
+[ext_resource type="Script" uid="uid://dxrjmehwholnl" path="res://Scripts/training.gd" id="1_1ydqc"]
+[ext_resource type="Texture2D" uid="uid://bgc233uk06hkf" path="res://icon.svg" id="1_xyj6f"]
+
+[node name="Training" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_1ydqc")
+
+[node name="Training1" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.15
+anchor_top = 0.9
+anchor_right = 0.3
+anchor_bottom = 0.95
+text = "Training 1"
+
+[node name="Training2" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.4
+anchor_top = 0.9
+anchor_right = 0.6
+anchor_bottom = 0.95
+text = "Training 2"
+
+[node name="Training3" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.7
+anchor_top = 0.9
+anchor_right = 0.85
+anchor_bottom = 0.95
+text = "Training 3"
+
+[node name="TitanSprite" type="Sprite2D" parent="."]
+position = Vector2(579, 341)
+texture = ExtResource("1_xyj6f")
+
+[node name="FightButton" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.93
+anchor_top = 0.45
+anchor_right = 0.98
+anchor_bottom = 0.55
+text = "Fight"
