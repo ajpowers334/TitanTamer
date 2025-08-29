@@ -1,7 +1,10 @@
 extends Node2D
 
 @onready var player_spawn = $PlayerSpawn
+@onready var enemy_spawn = $EnemySpawn
+
 var player_titan: Node2D
+var enemy_titan: Node2D
 
 func _ready():
 	# Get the saved titan stats
@@ -44,12 +47,72 @@ func _ready():
 		# Fallback position if no spawn point is found
 		player_titan.position = Vector2(200, 300)
 	
-	# Add to scene
-	add_child(player_titan)
+	# Create and set up enemy titan
+	_create_enemy_titan()
 	
-	# Make sure the titan is set up for gameplay
-	if player_titan.has_method("set_physics_process"):
-		player_titan.set_physics_process(true)
-	if player_titan is CharacterBody2D:
-		player_titan.set_physics_process_internal(true)
-		player_titan.process_mode = Node.PROCESS_MODE_INHERIT
+	# Connect to defeat/death signals
+	if player_titan.has_signal("defeated"):
+		player_titan.defeated.connect(_on_player_titan_defeated)
+	
+	if enemy_titan.has_signal("defeated"):
+		# Connect to the same function but we can handle it differently if needed
+		enemy_titan.defeated.connect(_on_enemy_titan_defeated)
+
+func _create_enemy_titan():
+	# Create a basic enemy titan
+	var enemy_scene = load("res://Scenes/titan.tscn")
+	enemy_titan = enemy_scene.instantiate()
+	
+	# Add to team_blue group
+	enemy_titan.add_to_group("team_blue")
+	
+	# Position the enemy titan
+	if enemy_spawn:
+		enemy_titan.global_position = enemy_spawn.global_position
+	else:
+		enemy_titan.position = Vector2(800, 300)  # Default position if no spawn point
+	
+	# Add to scene
+	add_child(enemy_titan)
+	
+	# Set up physics if needed
+	if enemy_titan.has_method("set_physics_process"):
+		enemy_titan.set_physics_process(true)
+	if enemy_titan is CharacterBody2D:
+		enemy_titan.set_physics_process_internal(true)
+		enemy_titan.process_mode = Node.PROCESS_MODE_INHERIT
+
+func _on_player_titan_defeated():
+	# Save player titan stats before showing game over
+	_save_player_stats()
+	# Pause the game and show game over UI
+	get_tree().paused = true
+	var gameover_scene = load("res://Scenes/gameoverui.tscn")
+	var gameover_ui = gameover_scene.instantiate()
+	gameover_ui.victory = false  # Player lost
+	get_tree().root.add_child(gameover_ui)
+
+func _on_enemy_titan_defeated():
+	# Save player titan stats before showing victory
+	_save_player_stats()
+	# Pause the game and show game over UI
+	get_tree().paused = true
+	var gameover_scene = load("res://Scenes/gameoverui.tscn")
+	var gameover_ui = gameover_scene.instantiate()
+	gameover_ui.victory = true  # Player won
+	get_tree().root.add_child(gameover_ui)
+
+func _save_player_stats():
+	# Save the player titan's current stats
+	if player_titan:
+		var titan_stats = {
+			"scene_path": get_tree().root.get_meta("selected_titan_stats", {}).get("scene_path", "res://Scenes/titan.tscn"),
+			"max_health": player_titan.max_health,
+			"current_health": player_titan.max_health,  # Heal to full when returning to training
+			"power": player_titan.power,
+			"range_stat": player_titan.range_stat,
+			"bulk": player_titan.bulk,
+			"agility": player_titan.agility,
+			"weight": player_titan.weight
+		}
+		get_tree().root.set_meta("selected_titan_stats", titan_stats)

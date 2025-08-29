@@ -49,3 +49,11 @@ text = "Fight"
 
 [node name="TitanContainer" type="Node2D" parent="."]
 position = Vector2(588, 359)
+
+[node name="StatsLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 20.0
+offset_bottom = 20.0
+text = "Stats will show here"
