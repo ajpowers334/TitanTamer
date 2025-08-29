@@ -46,3 +46,17 @@ position = Vector2(260, 318)
 
 [node name="EnemySpawn" type="Marker2D" parent="."]
 position = Vector2(800, 300)
+
+[node name="PlayerHealthBar" type="ProgressBar" parent="."]
+offset_left = 40.0
+offset_top = 30.0
+offset_right = 340.0
+offset_bottom = 62.0
+value = 100.0
+
+[node name="EnemyHealthBar" type="ProgressBar" parent="."]
+offset_left = 700.0
+offset_top = 30.0
+offset_right = 1000.0
+offset_bottom = 62.0
+value = 100.0

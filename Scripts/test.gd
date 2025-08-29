@@ -3,6 +3,9 @@ extends Node2D
 @onready var player_spawn = $PlayerSpawn
 @onready var enemy_spawn = $EnemySpawn
 
+@onready var player_health_bar = $PlayerHealthBar
+@onready var enemy_health_bar = $EnemyHealthBar
+
 var player_titan: Node2D
 var enemy_titan: Node2D
 
@@ -57,6 +60,18 @@ func _ready():
 	if enemy_titan.has_signal("defeated"):
 		# Connect to the same function but we can handle it differently if needed
 		enemy_titan.defeated.connect(_on_enemy_titan_defeated)
+	
+	# Connect to player health changes
+	if player_titan.has_signal("health_changed"):
+		player_titan.health_changed.connect(_on_player_health_changed)
+	# Initialize bar
+	_on_player_health_changed(player_titan.current_health, player_titan.max_health)
+
+	# Connect to enemy health changes
+	if enemy_titan.has_signal("health_changed"):
+		enemy_titan.health_changed.connect(_on_enemy_health_changed)
+	# Initialize bar
+	_on_enemy_health_changed(enemy_titan.current_health, enemy_titan.max_health)
 
 func _create_enemy_titan():
 	# Create a basic enemy titan
@@ -116,3 +131,13 @@ func _save_player_stats():
 			"weight": player_titan.weight
 		}
 		get_tree().root.set_meta("selected_titan_stats", titan_stats)
+
+func _on_player_health_changed(current: float, max: float) -> void:
+	if player_health_bar:
+		player_health_bar.max_value = max
+		player_health_bar.value = current
+
+func _on_enemy_health_changed(current: float, max: float) -> void:
+	if enemy_health_bar:
+		enemy_health_bar.max_value = max
+		enemy_health_bar.value = current

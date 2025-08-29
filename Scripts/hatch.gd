@@ -7,7 +7,8 @@ extends Control
 # Available titan scenes
 const TITAN_SCENES = [
 	"res://Scenes/titan.tscn",
-	"res://Scenes/vampire.tscn"
+	"res://Scenes/vampire.tscn",
+	"res://Scenes/golem.tscn"
 ]
 
 var titan: Node2D  # Will hold the instantiated titan
@@ -64,6 +65,8 @@ func _on_button_pressed():
 		# Update train button text based on titan type
 		if "Vampire" in titan.name:
 			train_button.text = "TRAIN VAMPIRE!"
+		elif "Golem" in titan.name:
+			train_button.text = "TRAIN GOLEM!"
 		else:
 			train_button.text = "TRAIN TITAN!"
 	)
@@ -85,6 +88,8 @@ func _on_train_button_pressed():
 	var titan_scene_path: String
 	if "Vampire" in titan.name:
 		titan_scene_path = "res://Scenes/vampire.tscn"
+	elif "Golem" in titan.name:
+		titan_scene_path = "res://Scenes/golem.tscn"
 	else:
 		titan_scene_path = "res://Scenes/titan.tscn"
 	
