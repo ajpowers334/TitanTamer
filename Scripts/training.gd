@@ -3,6 +3,7 @@ extends Control
 # Signal emitted when health changes
 signal health_changed(current_health: float, max_health: float)
 
+@onready var stats_label = $StatsLabel
 @onready var fight_button = $FightButton
 @onready var titan_container = $TitanContainer
 @onready var training_buttons = {
@@ -22,7 +23,7 @@ const TRAINING_TYPES = {
 }
 
 var training_completed = 0
-const MAX_TRAININGS = 3
+const MAX_TRAININGS = 1  # Only one training allowed
 
 func _ready():
 	# Try to get the titan type from the hatch scene
@@ -32,6 +33,17 @@ func _ready():
 	var titan_scene = load(titan_scene_path)
 	titan = titan_scene.instantiate()
 	titan_container.add_child(titan)
+	
+	# --- FIX: Apply saved stats if they exist ---
+	var saved_stats = get_tree().root.get_meta("selected_titan_stats", null)
+	if saved_stats and saved_stats.has("max_health"):
+		titan.max_health = saved_stats["max_health"]
+		titan.current_health = saved_stats["current_health"]
+		titan.power = saved_stats["power"]
+		titan.range_stat = saved_stats["range_stat"]
+		titan.bulk = saved_stats["bulk"]
+		titan.agility = saved_stats["agility"]
+		titan.weight = saved_stats["weight"]
 	
 	# Position the titan
 	titan.position = Vector2(0, 0)  # Adjust position as needed
@@ -75,26 +87,35 @@ func _on_training_selected(training_type: String) -> void:
 				"range_stat":
 					titan.range_stat += bonuses[stat]
 		
-		# Disable this training option
-		training_buttons[training_type].disabled = true
+		# Disable all training buttons after one is selected
+		for button in training_buttons.values():
+			button.disabled = true
+		
+		# Show the fight button
+		if fight_button:
+			fight_button.visible = true
 		
 		# Increment training counter
 		training_completed += 1
 		
-		# Check if all trainings are done
-		if training_completed >= MAX_TRAININGS and fight_button:
-			fight_button.visible = true
-			for button in training_buttons.values():
-				button.visible = false
-		
 		update_ui()
 
 func update_ui() -> void:
-	# Update any UI elements to show remaining trainings
-	var remaining = MAX_TRAININGS - training_completed
-	if remaining > 0:
-		# Update UI to show remaining trainings
-		pass
+	# Update UI to show training status
+	if stats_label and titan:
+		stats_label.text = (
+			"Current Stats:\n"
+			+ "HP: %d/%d\n" % [titan.current_health, titan.max_health]
+			+ "PWR: %d\n" % titan.power
+			+ "AGI: %d\n" % titan.agility
+			+ "BLK: %d\n" % titan.bulk
+			+ "RNG: %d\n" % titan.range_stat
+			+ "Weight: %d" % titan.weight
+		)
+	if training_completed >= MAX_TRAININGS:
+		# All trainings done, show fight button
+		if fight_button:
+			fight_button.visible = true
 
 func _on_fight_button_pressed():
 	# Save titan stats before changing scenes

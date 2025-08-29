@@ -83,17 +83,36 @@ func _create_enemy_titan():
 		enemy_titan.process_mode = Node.PROCESS_MODE_INHERIT
 
 func _on_player_titan_defeated():
+	# Save player titan stats before showing game over
+	_save_player_stats()
 	# Pause the game and show game over UI
 	get_tree().paused = true
 	var gameover_scene = load("res://Scenes/gameoverui.tscn")
 	var gameover_ui = gameover_scene.instantiate()
+	gameover_ui.victory = false  # Player lost
 	get_tree().root.add_child(gameover_ui)
 
 func _on_enemy_titan_defeated():
-	# Handle enemy titan defeat (you can add victory logic here)
-	print("Enemy titan defeated!")
-	# For now, just show the same game over UI
+	# Save player titan stats before showing victory
+	_save_player_stats()
+	# Pause the game and show game over UI
 	get_tree().paused = true
 	var gameover_scene = load("res://Scenes/gameoverui.tscn")
 	var gameover_ui = gameover_scene.instantiate()
+	gameover_ui.victory = true  # Player won
 	get_tree().root.add_child(gameover_ui)
+
+func _save_player_stats():
+	# Save the player titan's current stats
+	if player_titan:
+		var titan_stats = {
+			"scene_path": get_tree().root.get_meta("selected_titan_stats", {}).get("scene_path", "res://Scenes/titan.tscn"),
+			"max_health": player_titan.max_health,
+			"current_health": player_titan.max_health,  # Heal to full when returning to training
+			"power": player_titan.power,
+			"range_stat": player_titan.range_stat,
+			"bulk": player_titan.bulk,
+			"agility": player_titan.agility,
+			"weight": player_titan.weight
+		}
+		get_tree().root.set_meta("selected_titan_stats", titan_stats)
