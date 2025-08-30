@@ -48,7 +48,130 @@ anchor_bottom = 0.55
 text = "Fight"
 
 [node name="TitanContainer" type="Node2D" parent="."]
-position = Vector2(588, 359)
+position = Vector2(765, 385)
+
+[node name="MoveDisplay" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.02
+anchor_top = 0.02
+anchor_right = 0.3
+anchor_bottom = 0.4
+offset_left = 501.96
+offset_top = 19.04
+offset_right = 501.96
+offset_bottom = 19.04
+
+[node name="MoveList" type="VBoxContainer" parent="MoveDisplay"]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+size_flags_vertical = 3
+
+[node name="MoveTitle" type="Label" parent="MoveDisplay/MoveList"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 0
+text = "Move Chances:"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="DodgeMove" type="HBoxContainer" parent="MoveDisplay/MoveList"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 0
+
+[node name="DodgeLabel" type="Label" parent="MoveDisplay/MoveList/DodgeMove"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 0
+text = "Dodge: "
+vertical_alignment = 1
+
+[node name="DodgeChance" type="Label" parent="MoveDisplay/MoveList/DodgeMove"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 0
+text = "30%"
+vertical_alignment = 1
+
+[node name="DodgeDecrease" type="Button" parent="MoveDisplay/MoveList/DodgeMove"]
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 0
+text = "-"
+
+[node name="DodgeIncrease" type="Button" parent="MoveDisplay/MoveList/DodgeMove"]
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 0
+text = "+"
+
+[node name="TackleMove" type="HBoxContainer" parent="MoveDisplay/MoveList"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 0
+
+[node name="TackleLabel" type="Label" parent="MoveDisplay/MoveList/TackleMove"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 0
+text = "Tackle: "
+vertical_alignment = 1
+
+[node name="TackleChance" type="Label" parent="MoveDisplay/MoveList/TackleMove"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 0
+text = "30%"
+vertical_alignment = 1
+
+[node name="TackleDecrease" type="Button" parent="MoveDisplay/MoveList/TackleMove"]
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 0
+text = "-"
+
+[node name="TackleIncrease" type="Button" parent="MoveDisplay/MoveList/TackleMove"]
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 0
+text = "+"
+
+[node name="BlockMove" type="HBoxContainer" parent="MoveDisplay/MoveList"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 0
+
+[node name="BlockLabel" type="Label" parent="MoveDisplay/MoveList/BlockMove"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 0
+text = "Block: "
+vertical_alignment = 1
+
+[node name="BlockChance" type="Label" parent="MoveDisplay/MoveList/BlockMove"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 0
+text = "30%"
+vertical_alignment = 1
+
+[node name="BlockDecrease" type="Button" parent="MoveDisplay/MoveList/BlockMove"]
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 0
+text = "-"
+
+[node name="BlockIncrease" type="Button" parent="MoveDisplay/MoveList/BlockMove"]
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 0
+text = "+"
 
 [node name="StatsLabel" type="Label" parent="."]
 layout_mode = 0

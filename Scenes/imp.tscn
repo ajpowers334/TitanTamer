@@ -1,0 +1,30 @@
+[gd_scene load_steps=6 format=3 uid="uid://dbu708dyo2fxi"]
+
+[ext_resource type="Script" uid="uid://cyofqg8bvklrp" path="res://Scripts/imp.gd" id="1_l4yk4"]
+[ext_resource type="Texture2D" uid="uid://cvq2rp7r3cdpm" path="res://Sprites/Monkey.png" id="1_y0j3q"]
+[ext_resource type="Texture2D" uid="uid://2s0la2jsqa6b" path="res://Sprites/shield.png" id="2_l4yk4"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_mn172"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_7klgk"]
+
+[node name="Imp" type="CharacterBody2D"]
+script = ExtResource("1_l4yk4")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+scale = Vector2(6, 6)
+shape = SubResource("RectangleShape2D_mn172")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(0.25, 0.25)
+texture = ExtResource("1_y0j3q")
+
+[node name="Tackle" type="Area2D" parent="."]
+scale = Vector2(7, 7)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Tackle"]
+shape = SubResource("RectangleShape2D_7klgk")
+
+[node name="Block" type="Sprite2D" parent="."]
+visible = false
+texture = ExtResource("2_l4yk4")

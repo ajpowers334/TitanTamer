@@ -27,6 +27,13 @@ enum State { IDLE, BUSY }
 	"block": 0.4
 }
 
+# Move chances (percentages)
+var move_chances: Dictionary = {
+	"dodge": 30,
+	"tackle": 30,
+	"block": 30
+}
+
 # Visuals - override these in child scenes
 @export_category("Visuals")
 @export var sprite_texture: Texture2D
@@ -160,8 +167,6 @@ func _tackle() -> void:
 	facing_direction = _get_direction_to_opponent()
 	velocity.x = tackle_force * facing_direction
 	
-	# Flip the sprite based on direction
-	scale.x = abs(scale.x) * facing_direction
 	
 	# Enable hitbox when tackling
 	if tackle_hitbox:
@@ -195,6 +200,29 @@ func _block() -> void:
 				block_sprite.visible = false
 			print("[", name, "] Block ended")
 	)
+
+# Get the current move chances as percentages
+func get_move_chances() -> Dictionary:
+	return move_chances.duplicate()
+
+# Set new move chances (percentages)
+func set_move_chances(chances: Dictionary) -> void:
+	# Validate and normalize the chances
+	var total = 0.0
+	for move in chances:
+		if move in move_chances:  # Only update existing moves
+			move_chances[move] = max(0, min(100, chances[move]))  # Clamp between 0-100
+			total += move_chances[move]
+	
+	# If total is 0, reset to default to avoid division by zero
+	if total <= 0:
+		move_chances = {"dodge": 30, "tackle": 30, "block": 30}
+		total = 90.0
+	
+	# Convert percentages to weights (0-1) for the AI
+	for move in move_weights:
+		if move in move_chances:
+			move_weights[move] = move_chances[move] / total
 
 # Virtual method for setting up visuals - override in child classes
 func _setup_visuals() -> void:

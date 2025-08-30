@@ -3,9 +3,36 @@ extends Control
 # Signal emitted when health changes
 signal health_changed(current_health: float, max_health: float)
 
+# Move chance related signals and variables
+signal move_chances_updated(chances: Dictionary)
+
+const MOVE_CHANGE_AMOUNT = 5  # Percentage points to change per click
+const MIN_MOVE_CHANCE = 5      # Minimum chance percentage for any move
+const TOTAL_CHANCE = 100       # Total percentage points to distribute
+
 @onready var stats_label = $StatsLabel
 @onready var fight_button = $FightButton
 @onready var titan_container = $TitanContainer
+
+# Move chance UI elements
+@onready var move_chance_labels = {
+	"dodge": $MoveDisplay/MoveList/DodgeMove/DodgeChance,
+	"tackle": $MoveDisplay/MoveList/TackleMove/TackleChance,
+	"block": $MoveDisplay/MoveList/BlockMove/BlockChance
+}
+
+@onready var move_buttons = {
+	"dodge": {"increase": $MoveDisplay/MoveList/DodgeMove/DodgeIncrease, "decrease": $MoveDisplay/MoveList/DodgeMove/DodgeDecrease},
+	"tackle": {"increase": $MoveDisplay/MoveList/TackleMove/TackleIncrease, "decrease": $MoveDisplay/MoveList/TackleMove/TackleDecrease},
+	"block": {"increase": $MoveDisplay/MoveList/BlockMove/BlockIncrease, "decrease": $MoveDisplay/MoveList/BlockMove/BlockDecrease}
+}
+
+# Current move chances
+var move_chances = {
+	"dodge": 30,
+	"tackle": 30,
+	"block": 30
+}
 @onready var training_buttons = {
 	"brawler": $BrawlerTraining,
 	"dodge": $DodgeTraining,
@@ -33,6 +60,18 @@ func _ready():
 	var titan_scene = load(titan_scene_path)
 	titan = titan_scene.instantiate()
 	titan_container.add_child(titan)
+	
+	# Initialize move chances from titan if available
+	if titan.has_method("get_move_chances"):
+		move_chances = titan.get_move_chances()
+	
+	# Connect move chance buttons
+	for move in move_buttons:
+		move_buttons[move]["increase"].pressed.connect(_on_move_increase_pressed.bind(move))
+		move_buttons[move]["decrease"].pressed.connect(_on_move_decrease_pressed.bind(move))
+	
+	# Update move chance display
+	_update_move_chance_ui()
 	
 	# --- FIX: Apply saved stats if they exist ---
 	var saved_stats = get_tree().root.get_meta("selected_titan_stats", null)
@@ -117,6 +156,59 @@ func update_ui() -> void:
 		if fight_button:
 			fight_button.visible = true
 
+# Update the move chance display
+func _update_move_chance_ui() -> void:
+	for move in move_chance_labels:
+		move_chance_labels[move].text = "%d%%" % move_chances[move]
+	
+	# Update button states based on current chances
+	for move in move_buttons:
+		move_buttons[move]["decrease"].disabled = (move_chances[move] <= MIN_MOVE_CHANCE)
+		move_buttons[move]["increase"].disabled = (move_chances[move] >= 100)
+
+# Handle increase button press for a move
+func _on_move_increase_pressed(move: String) -> void:
+	var total_available = 0
+	for move_key in move_chances:
+		if move_key != move and move_chances[move_key] > MIN_MOVE_CHANCE:
+			total_available += (move_chances[move_key] - MIN_MOVE_CHANCE)
+	
+	if total_available > 0:
+		var amount = min(MOVE_CHANGE_AMOUNT, total_available)
+		move_chances[move] += amount
+		
+		# Distribute the decrease among other moves
+		var remaining = amount
+		while remaining > 0:
+			var per_move = max(1, remaining / (move_chances.size() - 1))  # At least 1 point per move
+			for move_key in move_chances:
+				if move_key != move and move_chances[move_key] > MIN_MOVE_CHANCE and remaining > 0:
+					var decrease = min(per_move, move_chances[move_key] - MIN_MOVE_CHANCE, remaining)
+					move_chances[move_key] -= decrease
+					remaining -= decrease
+		
+		_update_move_chance_ui()
+		emit_signal("move_chances_updated", move_chances.duplicate())
+
+# Handle decrease button press for a move
+func _on_move_decrease_pressed(move: String) -> void:
+	if move_chances[move] > MIN_MOVE_CHANCE:
+		var amount = min(MOVE_CHANGE_AMOUNT, move_chances[move] - MIN_MOVE_CHANCE)
+		move_chances[move] -= amount
+		
+		# Distribute the increase among other moves
+		var remaining = amount
+		while remaining > 0:
+			var per_move = max(1, remaining / (move_chances.size() - 1))  # At least 1 point per move
+			for move_key in move_chances:
+				if move_key != move and remaining > 0:
+					var increase = min(per_move, remaining)
+					move_chances[move_key] += increase
+					remaining -= increase
+		
+		_update_move_chance_ui()
+		emit_signal("move_chances_updated", move_chances.duplicate())
+
 func _on_fight_button_pressed():
 	# Save titan stats before changing scenes
 	var titan_stats = {
@@ -127,7 +219,8 @@ func _on_fight_button_pressed():
 		"range_stat": titan.range_stat,
 		"bulk": titan.bulk,
 		"agility": titan.agility,
-		"weight": titan.weight
+		"weight": titan.weight,
+		"move_chances": move_chances.duplicate()  # Save current move chances
 	}
 	get_tree().root.set_meta("selected_titan_stats", titan_stats)
 	get_tree().change_scene_to_file("res://Scenes/test.tscn")

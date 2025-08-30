@@ -29,6 +29,10 @@ func _ready():
 		player_titan.bulk = titan_stats["bulk"]
 		player_titan.agility = titan_stats["agility"]
 		player_titan.weight = titan_stats["weight"]
+		
+		# Apply move chances if they exist
+		if titan_stats.has("move_chances") and player_titan.has_method("set_move_chances"):
+			player_titan.set_move_chances(titan_stats["move_chances"].duplicate())
 	
 	# Add to team_red group
 	player_titan.add_to_group("team_red")
@@ -128,7 +132,9 @@ func _save_player_stats():
 			"range_stat": player_titan.range_stat,
 			"bulk": player_titan.bulk,
 			"agility": player_titan.agility,
-			"weight": player_titan.weight
+			"weight": player_titan.weight,
+			"move_chances": player_titan.get_move_chances().duplicate() if player_titan.has_method("get_move_chances") 
+											else {"dodge": 30, "tackle": 30, "block": 30}
 		}
 		get_tree().root.set_meta("selected_titan_stats", titan_stats)
 

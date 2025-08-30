@@ -8,7 +8,8 @@ extends Control
 const TITAN_SCENES = [
 	"res://Scenes/titan.tscn",
 	"res://Scenes/vampire.tscn",
-	"res://Scenes/golem.tscn"
+	"res://Scenes/golem.tscn",
+	"res://Scenes/imp.tscn"
 ]
 
 var titan: Node2D  # Will hold the instantiated titan
@@ -67,6 +68,8 @@ func _on_button_pressed():
 			train_button.text = "TRAIN VAMPIRE!"
 		elif "Golem" in titan.name:
 			train_button.text = "TRAIN GOLEM!"
+		elif "Imp" in titan.name:
+			train_button.text = "TRAIN IMP!"
 		else:
 			train_button.text = "TRAIN TITAN!"
 	)
@@ -90,6 +93,8 @@ func _on_train_button_pressed():
 		titan_scene_path = "res://Scenes/vampire.tscn"
 	elif "Golem" in titan.name:
 		titan_scene_path = "res://Scenes/golem.tscn"
+	elif "Imp" in titan.name:
+		titan_scene_path = "res://Scenes/imp.tscn"
 	else:
 		titan_scene_path = "res://Scenes/titan.tscn"
 	
