@@ -180,3 +180,11 @@ offset_top = 20.0
 offset_right = 20.0
 offset_bottom = 20.0
 text = "Stats will show here"
+
+[node name="MoveChangesLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 641.0
+offset_top = 10.0
+offset_right = 681.0
+offset_bottom = 33.0
+text = "Move Changes: 0/2"

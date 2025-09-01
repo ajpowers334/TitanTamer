@@ -33,6 +33,13 @@ var move_chances = {
 	"tackle": 30,
 	"block": 30
 }
+
+# Move change tracking
+const MAX_MOVE_CHANGES = 2
+var move_changes_remaining = MAX_MOVE_CHANGES
+
+# Titan name for saving/loading move chances
+var current_titan_name: String = ""
 @onready var training_buttons = {
 	"brawler": $BrawlerTraining,
 	"dodge": $DodgeTraining,
@@ -53,17 +60,44 @@ var training_completed = 0
 const MAX_TRAININGS = 1  # Only one training allowed
 
 func _ready():
+	print("Training: Starting _ready()")
 	# Try to get the titan type from the hatch scene
 	titan_scene_path = get_tree().root.get_meta("selected_titan", "res://Scenes/titan.tscn")
+	
+	# Get titan name from the path (e.g., "titan" from "res://Scenes/titan.tscn")
+	current_titan_name = titan_scene_path.get_file().get_basename()
+	print("Training: Loading titan ", current_titan_name)
 	
 	# Instantiate the titan
 	var titan_scene = load(titan_scene_path)
 	titan = titan_scene.instantiate()
 	titan_container.add_child(titan)
 	
-	# Initialize move chances from titan if available
-	if titan.has_method("get_move_chances"):
-		move_chances = titan.get_move_chances()
+	# Check for saved stats (from fight scene)
+	var saved_stats = get_tree().root.get_meta("selected_titan_stats", {})
+	
+	# First try to load move chances from saved stats
+	if saved_stats and saved_stats.has("move_chances"):
+		print("Training: Loading move chances from saved stats: ", saved_stats["move_chances"])
+		move_chances = saved_stats["move_chances"].duplicate()
+		# Update GameState with these chances
+		if Engine.has_singleton("GameState"):
+			GameState.update_move_chances(current_titan_name, move_chances.duplicate())
+	# Then try GameState
+	elif Engine.has_singleton("GameState"):
+		var game_state = get_node_or_null("/root/GameState")
+		if game_state:
+			var saved_chances = game_state.get_move_chances(current_titan_name)
+			if not saved_chances.is_empty():
+				print("Training: Loaded move chances from GameState: ", saved_chances)
+				move_chances = saved_chances.duplicate()
+	# Finally fall back to titan defaults
+	if titan.has_method("get_move_chances") and move_chances.is_empty():
+		print("Training: Using titan default move chances")
+		move_chances = titan.get_move_chances().duplicate()
+		# Save to GameState for future use
+		if Engine.has_singleton("GameState"):
+			GameState.update_move_chances(current_titan_name, move_chances.duplicate())
 	
 	# Connect move chance buttons
 	for move in move_buttons:
@@ -73,9 +107,9 @@ func _ready():
 	# Update move chance display
 	_update_move_chance_ui()
 	
-	# --- FIX: Apply saved stats if they exist ---
-	var saved_stats = get_tree().root.get_meta("selected_titan_stats", null)
+	# Apply saved stats if they exist (except move_chances which we already handled)
 	if saved_stats and saved_stats.has("max_health"):
+		print("Training: Loading saved stats for titan")
 		titan.max_health = saved_stats["max_health"]
 		titan.current_health = saved_stats["current_health"]
 		titan.power = saved_stats["power"]
@@ -83,6 +117,7 @@ func _ready():
 		titan.bulk = saved_stats["bulk"]
 		titan.agility = saved_stats["agility"]
 		titan.weight = saved_stats["weight"]
+		# Note: We don't load move_chances here anymore as we handle it above
 	
 	# Position the titan
 	titan.position = Vector2(0, 0)  # Adjust position as needed
@@ -134,8 +169,9 @@ func _on_training_selected(training_type: String) -> void:
 		if fight_button:
 			fight_button.visible = true
 		
-		# Increment training counter
+		# Increment training counter and reset move changes
 		training_completed += 1
+		move_changes_remaining = 0
 		
 		update_ui()
 
@@ -158,16 +194,40 @@ func update_ui() -> void:
 
 # Update the move chance display
 func _update_move_chance_ui() -> void:
-	for move in move_chance_labels:
-		move_chance_labels[move].text = "%d%%" % move_chances[move]
+	print("Updating move chance UI...")
+	# Update all move chance labels and button states
+	for move in move_chances:
+		move_chance_labels[move].text = str(move_chances[move]) + "%"
+		
+		# Update button states based on move chances and remaining changes
+		var can_increase = calculate_remaining_chance() > 0 and move_changes_remaining > 0
+		move_buttons[move]["increase"].disabled = !can_increase
+		move_buttons[move]["decrease"].disabled = (move_chances[move] <= MIN_MOVE_CHANCE) or (move_changes_remaining <= 0)
 	
-	# Update button states based on current chances
-	for move in move_buttons:
-		move_buttons[move]["decrease"].disabled = (move_chances[move] <= MIN_MOVE_CHANCE)
-		move_buttons[move]["increase"].disabled = (move_chances[move] >= 100)
+	# Update move changes counter display
+	if has_node("MoveChangesLabel"):
+		$MoveChangesLabel.text = "Move Changes: %d/%d" % [MAX_MOVE_CHANGES - move_changes_remaining, MAX_MOVE_CHANGES]
+	
+	# Save move chances to GameState if available
+	if not current_titan_name.is_empty() and Engine.has_singleton("GameState"):
+		GameState.update_move_chances(current_titan_name, move_chances)
+		
+	# Emit signal with current move chances
+	move_chances_updated.emit(move_chances)
+
+# Calculate the total remaining move chance points that can be distributed
+func calculate_remaining_chance() -> int:
+	var used = 0
+	for chance in move_chances.values():
+		used += chance
+	print("Remaining move chance points: ", TOTAL_CHANCE - used)
+	return TOTAL_CHANCE - used
 
 # Handle increase button press for a move
 func _on_move_increase_pressed(move: String) -> void:
+	if move_changes_remaining <= 0:
+		return
+		
 	var total_available = 0
 	for move_key in move_chances:
 		if move_key != move and move_chances[move_key] > MIN_MOVE_CHANCE:
@@ -176,25 +236,35 @@ func _on_move_increase_pressed(move: String) -> void:
 	if total_available > 0:
 		var amount = min(MOVE_CHANGE_AMOUNT, total_available)
 		move_chances[move] += amount
+		move_changes_remaining -= 1
 		
-		# Distribute the decrease among other moves
-		var remaining = amount
-		while remaining > 0:
-			var per_move = max(1, remaining / (move_chances.size() - 1))  # At least 1 point per move
-			for move_key in move_chances:
-				if move_key != move and move_chances[move_key] > MIN_MOVE_CHANCE and remaining > 0:
-					var decrease = min(per_move, move_chances[move_key] - MIN_MOVE_CHANCE, remaining)
-					move_chances[move_key] -= decrease
-					remaining -= decrease
+		# Find a move to decrease
+		for move_key in move_chances:
+			if move_key != move and move_chances[move_key] > MIN_MOVE_CHANCE:
+				var decrease_amount = min(amount, move_chances[move_key] - MIN_MOVE_CHANCE)
+				move_chances[move_key] -= decrease_amount
+				if decrease_amount == amount:
+					break
+				amount -= decrease_amount
+				if amount <= 0:
+					break
 		
+		# Update UI
 		_update_move_chance_ui()
-		emit_signal("move_chances_updated", move_chances.duplicate())
+		
+		# Save to GameState if available
+		if not current_titan_name.is_empty() and Engine.has_singleton("GameState"):
+			GameState.update_move_chances(current_titan_name, move_chances)
+		
+		# Emit signal with current move chances
+		move_chances_updated.emit(move_chances)
 
 # Handle decrease button press for a move
 func _on_move_decrease_pressed(move: String) -> void:
 	if move_chances[move] > MIN_MOVE_CHANCE:
 		var amount = min(MOVE_CHANGE_AMOUNT, move_chances[move] - MIN_MOVE_CHANCE)
 		move_chances[move] -= amount
+		move_changes_remaining -= 1
 		
 		# Distribute the increase among other moves
 		var remaining = amount
@@ -206,21 +276,36 @@ func _on_move_decrease_pressed(move: String) -> void:
 					move_chances[move_key] += increase
 					remaining -= increase
 		
+		# Update UI
 		_update_move_chance_ui()
-		emit_signal("move_chances_updated", move_chances.duplicate())
+		
+		# Save to GameState if available
+		if not current_titan_name.is_empty() and Engine.has_singleton("GameState"):
+			GameState.update_move_chances(current_titan_name, move_chances)
+		
+		# Emit signal with current move chances
+		move_chances_updated.emit(move_chances)
 
-func _on_fight_button_pressed():
-	# Save titan stats before changing scenes
-	var titan_stats = {
-		"scene_path": titan_scene_path,
-		"max_health": titan.max_health,
-		"current_health": titan.current_health,
-		"power": titan.power,
-		"range_stat": titan.range_stat,
-		"bulk": titan.bulk,
-		"agility": titan.agility,
-		"weight": titan.weight,
-		"move_chances": move_chances.duplicate()  # Save current move chances
-	}
-	get_tree().root.set_meta("selected_titan_stats", titan_stats)
+func _on_fight_button_pressed() -> void:
+	# Save the titan's current stats before switching scenes
+	if titan:
+		var titan_stats = {
+			"scene_path": titan_scene_path,
+			"max_health": titan.max_health,
+			"current_health": titan.current_health,
+			"power": titan.power,
+			"range_stat": titan.range_stat,
+			"bulk": titan.bulk,
+			"agility": titan.agility,
+			"weight": titan.weight,
+			"move_chances": move_chances,
+			"training_completed": training_completed
+		}
+		get_tree().root.set_meta("selected_titan_stats", titan_stats)
+		
+		# Save to GameState if available
+		if Engine.has_singleton("GameState"):
+			GameState.update_move_chances(current_titan_name, move_chances)
+	
+	# Load the test scene
 	get_tree().change_scene_to_file("res://Scenes/test.tscn")

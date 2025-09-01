@@ -124,8 +124,27 @@ func _on_enemy_titan_defeated():
 func _save_player_stats():
 	# Save the player titan's current stats
 	if player_titan:
+		# Get titan name from the scene path
+		var titan_scene_path = get_tree().root.get_meta("selected_titan_stats", {}).get("scene_path", "res://Scenes/titan.tscn")
+		var titan_name = titan_scene_path.get_file().get_basename()
+		
+		# Get current move chances from titan if available
+		var move_chances = {}
+		if player_titan.has_method("get_move_chances"):
+			move_chances = player_titan.get_move_chances().duplicate()
+			# Save move chances to GameState if available
+			var game_state = get_node_or_null("/root/GameState")
+			if game_state:
+				print("Test: Saving move chances to GameState - ", titan_name, " - ", move_chances)
+				game_state.update_move_chances(titan_name, move_chances)
+			else:
+				print("Test: GameState not found in autoloads. Check project settings.")
+				print("Current autoloads: ", ProjectSettings.get_setting("autoload"))
+		else:
+			move_chances = {"dodge": 30, "tackle": 30, "block": 30}
+		
 		var titan_stats = {
-			"scene_path": get_tree().root.get_meta("selected_titan_stats", {}).get("scene_path", "res://Scenes/titan.tscn"),
+			"scene_path": titan_scene_path,
 			"max_health": player_titan.max_health,
 			"current_health": player_titan.max_health,  # Heal to full when returning to training
 			"power": player_titan.power,
@@ -133,8 +152,7 @@ func _save_player_stats():
 			"bulk": player_titan.bulk,
 			"agility": player_titan.agility,
 			"weight": player_titan.weight,
-			"move_chances": player_titan.get_move_chances().duplicate() if player_titan.has_method("get_move_chances") 
-											else {"dodge": 30, "tackle": 30, "block": 30}
+			"move_chances": move_chances
 		}
 		get_tree().root.set_meta("selected_titan_stats", titan_stats)
 
