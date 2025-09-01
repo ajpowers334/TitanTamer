@@ -9,6 +9,7 @@ const TITAN_SCENES = [
 	"res://Scenes/titan.tscn",
 	"res://Scenes/vampire.tscn",
 	"res://Scenes/golem.tscn",
+	"res://Scenes/gryphon.tscn",
 	"res://Scenes/imp.tscn"
 ]
 
@@ -70,6 +71,8 @@ func _on_button_pressed():
 			train_button.text = "TRAIN GOLEM!"
 		elif "Imp" in titan.name:
 			train_button.text = "TRAIN IMP!"
+		elif "Gryphon" in titan.name:
+			train_button.text = "TRAIN GRYPHON!"
 		else:
 			train_button.text = "TRAIN TITAN!"
 	)
@@ -95,6 +98,8 @@ func _on_train_button_pressed():
 		titan_scene_path = "res://Scenes/golem.tscn"
 	elif "Imp" in titan.name:
 		titan_scene_path = "res://Scenes/imp.tscn"
+	elif "Gryphon" in titan.name:
+		titan_scene_path = "res://Scenes/gryphon.tscn"
 	else:
 		titan_scene_path = "res://Scenes/titan.tscn"
 	

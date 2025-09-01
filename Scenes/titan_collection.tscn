@@ -1,0 +1,67 @@
+[gd_scene load_steps=2 format=3 uid="uid://dpgepihc6mqe4"]
+
+[ext_resource type="Script" uid="uid://b3a42av6lwb8" path="res://Scripts/titan_collection.gd" id="1_qfcch"]
+
+[node name="TitanCollection" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_qfcch")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.1, 0.1, 0.15, 1)
+
+[node name="Title" type="Label" parent="."]
+layout_mode = 0
+anchor_top = 0.05
+anchor_right = 1.0
+anchor_bottom = 0.12
+theme_override_font_sizes/font_size = 32
+text = "TITAN COLLECTION"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TitanContainer" type="HBoxContainer" parent="."]
+layout_mode = 0
+anchor_left = 0.1
+anchor_top = 0.2
+anchor_right = 0.9
+anchor_bottom = 0.8
+theme_override_constants/separation = 40
+alignment = 1
+
+[node name="Titan1" type="Control" parent="TitanContainer"]
+editor_description = "Base Titan"
+layout_mode = 2
+
+[node name="Titan2" type="Control" parent="TitanContainer"]
+editor_description = "Vampire Titan"
+layout_mode = 2
+
+[node name="Titan3" type="Control" parent="TitanContainer"]
+editor_description = "Golem Titan"
+layout_mode = 2
+
+[node name="Titan4" type="Control" parent="TitanContainer"]
+editor_description = "Gryphon Titan"
+layout_mode = 2
+
+[node name="Titan5" type="Control" parent="TitanContainer"]
+editor_description = "Imp Titan"
+layout_mode = 2
+
+[node name="BackButton" type="Button" parent="."]
+layout_mode = 0
+anchor_left = 0.025
+anchor_top = 0.9
+anchor_right = 0.15
+anchor_bottom = 0.97
+theme_override_font_sizes/font_size = 24
+text = "Back"
+flat = true
