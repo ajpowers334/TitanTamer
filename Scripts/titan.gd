@@ -13,24 +13,20 @@ signal defeated  # Emitted when the titan is defeated
 enum State { IDLE, BUSY }
 
 # Base stats - these should be overridden in child classes
+# Remove move_weights and only use move_chances
 @export_category("Base Stats")
 @export var max_health: float = 100.0
 @export var current_health: float = 100.0
-@export var power: float = 10.0  # PWR - Modifies physical move damage
-@export var range_stat: float = 10.0  # RNG - Modifies special/ranged move damage
-@export var bulk: float = 5.0  # BLK - Reduces damage taken from all moves
-@export var agility: float = 1.0  # AGI - Affects move frequency
-@export var weight: float = 100.0  # Affects knockback resistance
-@export var move_weights: Dictionary = {
-	"dodge": 0.2,
-	"tackle": 0.4,
-	"block": 0.4
-}
+@export var power: float = 10.0
+@export var range_stat: float = 10.0
+@export var bulk: float = 5.0
+@export var agility: float = 1.0
+@export var weight: float = 100.0
 
-# Move chances (percentages)
+# Move chances (percentages that sum to 100)
 var move_chances: Dictionary = {
 	"dodge": 30,
-	"tackle": 30,
+	"tackle": 40,
 	"block": 30
 }
 
@@ -54,6 +50,9 @@ var is_on_ground: bool = false
 
 func _ready() -> void:
 	current_health = max_health
+	
+	# Normalize move chances to ensure they sum to 100
+	_normalize_move_chances()
 	
 	# Setup AI timer
 	add_child(ai_timer)
@@ -100,13 +99,27 @@ func _on_ai_timeout() -> void:
 
 func _make_decision() -> void:
 	var total = 0.0
-	var roll = randf()
+	var roll = randf() * 100  # Scale to 100 for percentage comparison
 	
-	for move in move_weights:
-		total += move_weights[move]
+	for move in move_chances:
+		total += move_chances[move]
 		if roll <= total:
 			_execute_move(move)
 			return
+			
+func _normalize_move_chances() -> void:
+	var total = 0.0
+	for chance in move_chances.values():
+		total += chance
+		
+	# If total is 0, set default values
+	if total <= 0:
+		move_chances = {"dodge": 30, "tackle": 40, "block": 30}
+		total = 100.0
+		
+	# Normalize to sum to 100
+	for move in move_chances:
+		move_chances[move] = (move_chances[move] / total) * 100
 
 func _execute_move(move: String) -> void:
 	current_state = State.BUSY
@@ -124,15 +137,13 @@ func _execute_move(move: String) -> void:
 
 func _dodge() -> void:
 	print("[", name, "] Dodging!")
-	var dodge_force = 300.0 * (agility / 2.0)  # Scale dodge with AGI
+	var dodge_force = 200.0 * (agility / 2.0)  # Scale dodge with AGI
 	# Dodge away from the nearest opponent
 	facing_direction = _get_direction_to_opponent()
 	# Move in the opposite direction of the opponent
 	var dodge_direction = -facing_direction
 	velocity.x = dodge_force * dodge_direction
-	# Update facing to match dodge direction
-	facing_direction = dodge_direction
-	scale.x = abs(scale.x) * facing_direction
+	
 
 func _get_opponent_group() -> String:
 	# Returns the group name of the opposing team
@@ -208,21 +219,11 @@ func get_move_chances() -> Dictionary:
 # Set new move chances (percentages)
 func set_move_chances(chances: Dictionary) -> void:
 	# Validate and normalize the chances
-	var total = 0.0
 	for move in chances:
-		if move in move_chances:  # Only update existing moves
-			move_chances[move] = max(0, min(100, chances[move]))  # Clamp between 0-100
-			total += move_chances[move]
-	
-	# If total is 0, reset to default to avoid division by zero
-	if total <= 0:
-		move_chances = {"dodge": 30, "tackle": 30, "block": 30}
-		total = 90.0
-	
-	# Convert percentages to weights (0-1) for the AI
-	for move in move_weights:
 		if move in move_chances:
-			move_weights[move] = move_chances[move] / total
+			move_chances[move] = max(0, min(100, chances[move]))  # Clamp between 0-100
+			
+	_normalize_move_chances()
 
 # Virtual method for setting up visuals - override in child classes
 func _setup_visuals() -> void:

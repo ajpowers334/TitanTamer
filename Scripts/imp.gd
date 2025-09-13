@@ -19,11 +19,11 @@ func _init() -> void:
 	weight = 50.0          # Very light, easy to knock around
 	bulk = 2.0             # Low damage reduction (BLK)
 	
-	# Move weights - favors dodging and quick attacks
-	move_weights = {
-		"dodge": 0.5,    # Very good at dodging
-		"tackle": 0.4,   # Quick attacks
-		"block": 0.1     # Rarely blocks
+	# Move chances - favors dodging and quick attacks
+	move_chances = {
+		"dodge": 50,    # Very good at dodging
+		"tackle": 40,   # Quick attacks
+		"block": 10     # Rarely blocks
 	}
 
 # Override dodge to make it a dash attack

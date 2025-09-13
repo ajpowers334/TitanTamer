@@ -21,7 +21,7 @@ scale = Vector2(0.2, 0.2)
 texture = ExtResource("1_uup0c")
 
 [node name="Tackle" type="Area2D" parent="."]
-scale = Vector2(7, 7)
+scale = Vector2(8, 8)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Tackle"]
 shape = SubResource("RectangleShape2D_7klgk")

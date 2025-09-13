@@ -10,6 +10,16 @@
 
 [node name="Golem" type="CharacterBody2D"]
 script = ExtResource("1_lqe5q")
+damage_reduction = null
+heal_amount = null
+heal_duration = null
+max_health = null
+current_health = null
+power = null
+range_stat = null
+bulk = null
+agility = null
+weight = null
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 scale = Vector2(6, 6)
@@ -21,7 +31,7 @@ scale = Vector2(0.2, 0.2)
 texture = ExtResource("1_568nj")
 
 [node name="Tackle" type="Area2D" parent="."]
-scale = Vector2(7, 7)
+scale = Vector2(8, 8)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Tackle"]
 shape = SubResource("RectangleShape2D_7klgk")

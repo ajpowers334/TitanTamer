@@ -16,35 +16,16 @@ func _init() -> void:
 	weight = 80.0          # Lighter, more susceptible to knockback
 	bulk = 3.0             # Weaker bulk (BLK)
 	
-	# Adjust move weights - more aggressive playstyle
-	move_weights = {
-		"dodge": 0.4,    # Good at dodging
-		"tackle": 0.5,   # Prefers attacking
-		"block": 0.1     # Rarely blocks
+	# Move chances - aggressive playstyle
+	move_chances = {
+		"dodge": 40,    # Good at dodging
+		"tackle": 50,   # Prefers attacking
+		"block": 10     # Rarely blocks
 	}
 
-# Override take_damage to implement life steal
+# Override take_damage if needed
 func take_damage(amount: float, source_position: Vector2) -> void:
-	# First let the base class handle the damage
 	super.take_damage(amount, source_position)
-	
-	# If we're the one dealing damage (source is the one who called take_damage)
-	# This would need to be called from the attack that hits the opponent
-
-# Override tackle to add life steal effect
-func _tackle() -> void:
-	super._tackle()  # Call base tackle first
-	
-	# Add life steal effect - this would need to be connected to when the tackle hits
-	var life_steal_callback = func():
-		if tackle_hitbox and tackle_hitbox.has_overlapping_bodies():
-			var heal_amount = power * life_steal_amount
-			current_health = min(max_health, current_health + heal_amount)
-			health_changed.emit(current_health, max_health)
-	
-	# Connect to when the hitbox is activated
-	if tackle_hitbox:
-		tackle_hitbox.body_entered.connect(life_steal_callback, CONNECT_ONE_SHOT)
 
 # Override to customize visuals
 func _setup_visuals() -> void:

@@ -9,6 +9,7 @@ signal move_chances_updated(chances: Dictionary)
 const MOVE_CHANGE_AMOUNT = 5  # Percentage points to change per click
 const MIN_MOVE_CHANCE = 5      # Minimum chance percentage for any move
 const TOTAL_CHANCE = 100       # Total percentage points to distribute
+const MAX_MOVE_CHANGES = 2     # Maximum number of move changes allowed per training session
 
 @onready var stats_label = $StatsLabel
 @onready var fight_button = $FightButton
@@ -35,7 +36,6 @@ var move_chances = {
 }
 
 # Move change tracking
-const MAX_MOVE_CHANGES = 2
 var move_changes_remaining = MAX_MOVE_CHANGES
 
 # Titan name for saving/loading move chances
@@ -192,15 +192,82 @@ func update_ui() -> void:
 		if fight_button:
 			fight_button.visible = true
 
+# Calculate the maximum amount a move can be increased
+func calculate_max_increase(move: String) -> int:
+	var total_available = 0
+	for move_key in move_chances:
+		if move_key != move and move_chances[move_key] > MIN_MOVE_CHANCE:
+			total_available += (move_chances[move_key] - MIN_MOVE_CHANCE)
+	return total_available
+
+# Redistribute changes to other moves when one move is modified
+func _redistribute_changes(changed_move: String, amount: int) -> void:
+	if amount > 0:  # Increasing a move, need to decrease others
+		var remaining = amount
+		var moves_to_decrease = []
+		
+		# Find moves that can be decreased
+		for move_key in move_chances:
+			if move_key != changed_move and move_chances[move_key] > MIN_MOVE_CHANCE:
+				moves_to_decrease.append(move_key)
+		
+		if moves_to_decrease.is_empty():
+			return
+			
+		# Decrease moves proportionally
+		var decrease_per_move = ceil(float(amount) / moves_to_decrease.size())
+		for move_key in moves_to_decrease:
+			if remaining <= 0:
+				break
+				
+			var decrease_amount = min(decrease_per_move, move_chances[move_key] - MIN_MOVE_CHANCE, remaining)
+			move_chances[move_key] -= decrease_amount
+			remaining -= decrease_amount
+	
+	else:  # Decreasing a move, need to increase others
+		var remaining = -amount  # Convert to positive
+		var moves_to_increase = []
+		
+		# Find moves that can be increased
+		for move_key in move_chances:
+			if move_key != changed_move:
+				moves_to_increase.append(move_key)
+		
+		if moves_to_increase.is_empty():
+			return
+			
+		# Increase moves proportionally
+		var increase_per_move = ceil(float(-amount) / moves_to_increase.size())
+		for move_key in moves_to_increase:
+			if remaining <= 0:
+				break
+				
+			var increase_amount = min(increase_per_move, remaining)
+			move_chances[move_key] += increase_amount
+			remaining -= increase_amount
+
 # Update the move chance display
 func _update_move_chance_ui() -> void:
-	print("Updating move chance UI...")
+	# Validate that chances sum to 100
+	var total = 0
+	for chance in move_chances.values():
+		total += chance
+	
+	# If they don't sum to 100, normalize them
+	if total != 100:
+		var normalization_factor = 100.0 / total
+		for move in move_chances:
+			move_chances[move] = round(move_chances[move] * normalization_factor)
+		
+		# Ensure exact sum of 100 after rounding
+		_ensure_exact_sum()
+	
 	# Update all move chance labels and button states
 	for move in move_chances:
 		move_chance_labels[move].text = str(move_chances[move]) + "%"
 		
 		# Update button states based on move chances and remaining changes
-		var can_increase = calculate_remaining_chance() > 0 and move_changes_remaining > 0
+		var can_increase = calculate_max_increase(move) > 0 and move_changes_remaining > 0
 		move_buttons[move]["increase"].disabled = !can_increase
 		move_buttons[move]["decrease"].disabled = (move_chances[move] <= MIN_MOVE_CHANCE) or (move_changes_remaining <= 0)
 	
@@ -211,9 +278,29 @@ func _update_move_chance_ui() -> void:
 	# Save move chances to GameState if available
 	if not current_titan_name.is_empty() and Engine.has_singleton("GameState"):
 		GameState.update_move_chances(current_titan_name, move_chances)
-		
+	
 	# Emit signal with current move chances
 	move_chances_updated.emit(move_chances)
+
+# Ensure move chances sum to exactly 100 after normalization
+func _ensure_exact_sum() -> void:
+	var total = 0
+	for chance in move_chances.values():
+		total += chance
+	
+	var difference = 100 - total
+	if difference != 0:
+		# Find the move with the highest value and adjust it
+		var highest_move = ""
+		var highest_value = -1
+		
+		for move in move_chances:
+			if move_chances[move] > highest_value:
+				highest_value = move_chances[move]
+				highest_move = move
+		
+		if highest_move != "":
+			move_chances[highest_move] += difference
 
 # Calculate the total remaining move chance points that can be distributed
 func calculate_remaining_chance() -> int:
@@ -228,61 +315,36 @@ func _on_move_increase_pressed(move: String) -> void:
 	if move_changes_remaining <= 0:
 		return
 		
-	var total_available = 0
-	for move_key in move_chances:
-		if move_key != move and move_chances[move_key] > MIN_MOVE_CHANCE:
-			total_available += (move_chances[move_key] - MIN_MOVE_CHANCE)
-	
-	if total_available > 0:
-		var amount = min(MOVE_CHANGE_AMOUNT, total_available)
-		move_chances[move] += amount
+	var amount = min(MOVE_CHANGE_AMOUNT, calculate_max_increase(move))
+	if amount > 0:
 		move_changes_remaining -= 1
-		
-		# Find a move to decrease
-		for move_key in move_chances:
-			if move_key != move and move_chances[move_key] > MIN_MOVE_CHANCE:
-				var decrease_amount = min(amount, move_chances[move_key] - MIN_MOVE_CHANCE)
-				move_chances[move_key] -= decrease_amount
-				if decrease_amount == amount:
-					break
-				amount -= decrease_amount
-				if amount <= 0:
-					break
-		
-		# Update UI
+		move_chances[move] += amount
+		_redistribute_changes(move, amount)
 		_update_move_chance_ui()
 		
 		# Save to GameState if available
 		if not current_titan_name.is_empty() and Engine.has_singleton("GameState"):
 			GameState.update_move_chances(current_titan_name, move_chances)
-		
+			
 		# Emit signal with current move chances
 		move_chances_updated.emit(move_chances)
 
 # Handle decrease button press for a move
 func _on_move_decrease_pressed(move: String) -> void:
-	if move_chances[move] > MIN_MOVE_CHANCE:
-		var amount = min(MOVE_CHANGE_AMOUNT, move_chances[move] - MIN_MOVE_CHANCE)
-		move_chances[move] -= amount
+	if move_changes_remaining <= 0 or move_chances[move] <= MIN_MOVE_CHANCE:
+		return
+		
+	var amount = min(MOVE_CHANGE_AMOUNT, move_chances[move] - MIN_MOVE_CHANCE)
+	if amount > 0:
 		move_changes_remaining -= 1
-		
-		# Distribute the increase among other moves
-		var remaining = amount
-		while remaining > 0:
-			var per_move = max(1, remaining / (move_chances.size() - 1))  # At least 1 point per move
-			for move_key in move_chances:
-				if move_key != move and remaining > 0:
-					var increase = min(per_move, remaining)
-					move_chances[move_key] += increase
-					remaining -= increase
-		
-		# Update UI
+		move_chances[move] -= amount
+		_redistribute_changes(move, -amount)  # Negative amount means decreasing
 		_update_move_chance_ui()
 		
 		# Save to GameState if available
 		if not current_titan_name.is_empty() and Engine.has_singleton("GameState"):
 			GameState.update_move_chances(current_titan_name, move_chances)
-		
+			
 		# Emit signal with current move chances
 		move_chances_updated.emit(move_chances)
 

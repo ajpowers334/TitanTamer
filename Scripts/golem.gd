@@ -18,19 +18,13 @@ func _init() -> void:
 	weight = 200.0         # Very heavy, resistant to knockback
 	bulk = 8.0             # Excellent bulk (BLK)
 	
-	# Adjust move weights - defensive playstyle with healing
-	move_weights = {
-		"dodge": 0.1,     # Poor at dodging
-		"tackle": 0.3,    # Moderate attacking
-		"block": 0.3,     # Good at blocking
-		"heal": 0.3       # Can heal itself
+	# Move chances - defensive playstyle
+	move_chances = {
+		"dodge": 10,     # Poor at dodging
+		"tackle": 40,    # Moderate attacking
+		"block": 50      # Good at blocking
 	}
 	
-# Healing properties
-@export var heal_amount: float = 20.0  # Amount to heal
-@export var heal_duration: float = 1.0 # Time to complete healing
-var is_healing: bool = false
-
 # Override take_damage to implement damage reduction
 func take_damage(amount: float, source_position: Vector2) -> void:
 	# Apply damage reduction
