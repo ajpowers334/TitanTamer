@@ -46,6 +46,52 @@ func _ready():
 	
 	button.pressed.connect(_on_button_pressed)
 	train_button.pressed.connect(_on_train_button_pressed)
+	$rerollButton.pressed.connect(_on_reroll_button_pressed)
+
+func _on_reroll_button_pressed():
+	# Make current titan invisible and remove it
+	if is_instance_valid(titan):
+		titan.visible = false
+		titan.queue_free()
+		
+	# Randomly select a new titan scene
+	var titan_scene_path = TITAN_SCENES[randi() % TITAN_SCENES.size()]
+	var titan_scene = load(titan_scene_path)
+
+	# Get the titan container
+	var titan_container = get_node_or_null("TitanContainer")
+	if not titan_container:
+		titan_container = Node2D.new()
+		titan_container.name = "TitanContainer"
+		add_child(titan_container)
+
+	# Instantiate the new titan
+	titan = titan_scene.instantiate()
+	titan_container.add_child(titan)
+	titan.visible = true
+
+	# Position the titan at the same position as the egg
+	titan.global_position = egg.global_position
+
+	# Disable physics on the titan immediately
+	if titan.has_method("set_physics_process"):
+		titan.set_physics_process(false)
+	if titan is CharacterBody2D:
+		titan.set_physics_process_internal(false)
+		titan.velocity = Vector2.ZERO
+		titan.process_mode = Node.PROCESS_MODE_DISABLED
+
+	# Update train button text based on titan type
+	if "Vampire" in titan.name:
+		train_button.text = "TRAIN VAMPIRE!"
+	elif "Golem" in titan.name:
+		train_button.text = "TRAIN GOLEM!"
+	elif "Imp" in titan.name:
+		train_button.text = "TRAIN IMP!"
+	elif "Gryphon" in titan.name:
+		train_button.text = "TRAIN GRYPHON!"
+	else:
+		train_button.text = "TRAIN TITAN!"
 
 func _on_button_pressed():
 	# Disable button to prevent multiple clicks

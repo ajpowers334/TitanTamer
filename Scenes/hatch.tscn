@@ -40,3 +40,11 @@ text = "hatch"
 position = Vector2(569, 311)
 scale = Vector2(1.5, 1.5)
 texture = ExtResource("1_s8fat")
+
+[node name="rerollButton" type="Button" parent="."]
+layout_mode = 0
+offset_left = 214.0
+offset_top = 304.0
+offset_right = 222.0
+offset_bottom = 312.0
+text = "Reroll"

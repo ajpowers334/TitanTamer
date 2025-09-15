@@ -141,6 +141,7 @@ func _ready():
 		fight_button.pressed.connect(_on_fight_button_pressed)
 	
 	update_ui()
+	$MainMenu.pressed.connect(_on_main_menu_button_pressed)
 
 func _on_training_selected(training_type: String) -> void:
 	if training_type in TRAINING_TYPES:
@@ -347,6 +348,10 @@ func _on_move_decrease_pressed(move: String) -> void:
 			
 		# Emit signal with current move chances
 		move_chances_updated.emit(move_chances)
+
+func _on_main_menu_button_pressed() -> void:
+	# Save any necessary game state here if needed
+	get_tree().change_scene_to_file("res://Scenes/main_menu.tscn")
 
 func _on_fight_button_pressed() -> void:
 	# Save the titan's current stats before switching scenes

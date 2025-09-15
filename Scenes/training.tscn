@@ -188,3 +188,11 @@ offset_top = 10.0
 offset_right = 681.0
 offset_bottom = 33.0
 text = "Move Changes: 0/2"
+
+[node name="MainMenu" type="Button" parent="."]
+layout_mode = 0
+offset_left = 141.0
+offset_top = 240.0
+offset_right = 149.0
+offset_bottom = 248.0
+text = "Main Menu"

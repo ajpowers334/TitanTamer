@@ -42,56 +42,6 @@ func _tackle() -> void:
 	# Reset power after tackle
 	power = original_power
 
-# Override the select_move function to include healing
-func select_move() -> void:
-	# If health is low, increase heal chance
-	var health_ratio = current_health / max_health
-	var heal_chance = move_weights["heal"] * (1.0 - health_ratio)  # More likely to heal when low on health
-	
-	var move_choices = ["dodge", "tackle", "block"]
-	var weights = [move_weights["dodge"], move_weights["tackle"], move_weights["block"]]
-	
-	# Add heal to possible moves if not already healing
-	if !is_healing:
-		move_choices.append("heal")
-		weights.append(heal_chance)
-	
-	var selected_move = move_choices[randi() % move_choices.size()]  # Simple random selection
-	
-	match selected_move:
-		"heal":
-			heal_self()
-		_:
-			current_move = selected_move
-			emit_signal("move_selected", current_move)
-
-# Heal over time
-func heal_self() -> void:
-	is_healing = true
-	current_move = "heal"
-	emit_signal("move_selected", current_move)
-	
-	# Create a healing effect
-	var heal_timer = get_tree().create_timer(heal_duration, false)
-	heal_timer.timeout.connect(_on_heal_complete)
-	
-	# Visual feedback
-	if has_node("HealParticles"):
-		$HealParticles.emitting = true
-	
-	# Optional: Play heal animation
-	if has_node("AnimationPlayer"):
-		$AnimationPlayer.play("heal")
-
-func _on_heal_complete() -> void:
-	if is_healing:  # Make sure we're still healing (in case of interruptions)
-		current_health = min(max_health, current_health + heal_amount)
-		health_changed.emit(current_health, max_health)
-		is_healing = false
-		
-		# Reset particles if they exist
-		if has_node("HealParticles"):
-			$HealParticles.emitting = false
 
 # Override to customize visuals
 func _setup_visuals() -> void:
